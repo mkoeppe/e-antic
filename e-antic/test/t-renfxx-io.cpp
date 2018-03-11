@@ -12,6 +12,7 @@
 #include <e-antic/renfxx.h>
 #include <sstream>
 #include <cstdlib>
+#include <iostream>
 
 using namespace std;
 
@@ -48,6 +49,10 @@ int main(void)
         istringstream is("4*x + 2"); // 4 sqrt(2) + 2
         is >> set_renf(nf) >> f;
         // FIXME: Check f.
+
+
+        renf_class renf(nf);
+        cout << renf;
 
         renf_clear(nf);
         fmpq_poly_clear(p);
