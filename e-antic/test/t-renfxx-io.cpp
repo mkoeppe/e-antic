@@ -46,13 +46,22 @@ int main(void)
         renf_init(nf, p, emb, 64);
 
         istringstream is("4*x + 2"); // 4 sqrt(2) + 2
-        is >> set_renf(nf) >> f;
+        is >> set_renf(nf); // >> f;
         // FIXME: Check f.
+        
+        renf_class NF(nf);
+        cout << NF;
 
         renf_clear(nf);
         fmpq_poly_clear(p);
         arb_clear(emb);
     }
+    
+    istringstream is("min_poly 3  -2 0 1 embedding [1 +/- 1]");
+    renf_class NF;
+    is >> NF;
+    
+    cout << NF;
 
 
     return 0;

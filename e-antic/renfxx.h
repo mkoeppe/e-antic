@@ -28,6 +28,9 @@ public:
     renf_class(renf_t nf) : nf(nf) {} // FIXME: object ownership =?
     ~renf_class() {}
     renf_srcptr get_renf() { return nf; }
+
+    friend std::ostream& operator << (std::ostream &, const renf_class&);
+    friend std::istream& operator >> (std::istream &, renf_class&);
 };
 
 class renf_elem_class
@@ -340,6 +343,68 @@ inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
     os << res;
     flint_free(res);
     return os;
+}
+
+inline std::ostream& operator<<(std::ostream & os, const renf_class& nf)
+{
+    char *res, *res1;
+    res=fmpq_poly_get_str(nf.nf->nf->pol);
+    res1=arb_get_str(nf.nf->emb,64,0);
+    os << "min_poly "<< res << " embedding " << res1 << std::endl;
+    flint_free(res);
+    flint_free(res1);
+    return os;
+}
+
+inline std::istream& operator>>(std::istream & is, renf_class& a)
+{
+    char c;
+    std::string s;
+    is >> s;
+    if(s!="min_poly")
+        throw std::ios_base::failure("Error in reading number field: expected keyword min_poly");
+    std::string t;
+    while(true){
+        c=is.peek();
+        if(c=='e')
+            break;
+        is.get(c);
+        t+=c;               
+    }
+    fmpq_poly_t inpoly;
+    fmpq_poly_init(inpoly);
+    fmpq_poly_set_str(inpoly,t.c_str());
+    is >> s;
+    if(s!="embedding")
+        throw std::ios_base::failure("Error in reading number field: expected keyword embedding");
+    is >> std::ws;
+    std::string u;
+    c=is.peek();
+    if(c=='['){
+        while(true){
+            is.get(c);
+            u+=c;
+            if(c==']')
+                break;
+        }
+    }
+    else{
+        is >> u;
+    }
+    std::cout << "Gut " << u <<std::endl;
+    arb_t emb;
+    arb_init(emb);
+    int error=arb_set_str(emb,u.c_str(),10);
+    if(error)
+        throw std::ios_base::failure("Error in reading number field: bad formatting of embedding " + u );
+    renf_t nf;
+    std::cout << "$$$$$$$$$" << std::endl;
+    arb_print(emb);
+    std::cout << std::endl << "$$$$$$$$$" << std::endl;
+    renf_init(nf,inpoly,emb,64);
+    std::cout << "$$$$$$$$$" << std::endl;
+    a=nf;    
+    return is;
 }
 
 struct set_renf {

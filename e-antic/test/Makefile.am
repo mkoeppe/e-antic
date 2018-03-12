@@ -12,6 +12,6 @@ check_PROGRAMS =				\
 	t-renfxx-io
 
 LDADD = ../../libnfemb.la
-LIBS = -lgmpxx -lgmp
+LIBS = -lantic -larb -lflint -lgmpxx -lgmp
 
 TESTS = $(check_PROGRAMS)
