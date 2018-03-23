@@ -357,7 +357,7 @@ inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
     if (a.nf == NULL)
         res = fmpq_get_str(NULL, 10, a.b);
     else
-        res = renf_elem_get_str_pretty(a.a, "x", a.nf, 5);
+        res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
     os << res;
     flint_free(res);
     return os;
@@ -381,6 +381,7 @@ inline std::istream& operator>>(std::istream & is, renf_class& a)
     is >> s;
     if(s!="min_poly")
         throw std::ios_base::failure("Error in reading number field: expected keyword min_poly");
+    is >> std::ws;
     std::string t;
     while(true){
         c=is.peek();
@@ -391,7 +392,9 @@ inline std::istream& operator>>(std::istream & is, renf_class& a)
     }
     fmpq_poly_t inpoly;
     fmpq_poly_init(inpoly);
-    fmpq_poly_set_str(inpoly,t.c_str());
+    int error = fmpq_poly_set_str(inpoly,t.c_str());
+    if (error)
+         throw std::ios_base::failure("Error in reading number field: invalid polynomial " + t);
     is >> s;
     if(s!="embedding")
         throw std::ios_base::failure("Error in reading number field: expected keyword embedding");
@@ -409,19 +412,14 @@ inline std::istream& operator>>(std::istream & is, renf_class& a)
     else{
         is >> u;
     }
-    std::cout << "Gut " << u <<std::endl;
     arb_t emb;
     arb_init(emb);
-    int error=arb_set_str(emb,u.c_str(),10);
+    error=arb_set_str(emb,u.c_str(),10);
     if(error)
         throw std::ios_base::failure("Error in reading number field: bad formatting of embedding " + u );
     renf_t nf;
-    std::cout << "$$$$$$$$$" << std::endl;
-    arb_print(emb);
-    std::cout << std::endl << "$$$$$$$$$" << std::endl;
     renf_init(nf,inpoly,emb,64);
-    std::cout << "$$$$$$$$$" << std::endl;
-    a=nf;    
+    a=nf; 
     return is;
 }
 
@@ -454,7 +452,9 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
         a = x;
     }
     else {
-        // FIXME: Read element
+        // FIXME: Read element of one of two forms
+        // either a rational number
+        // or "(1 + 5/2*a - 5*a^2)" (matching part of output: 2*a^3 + 3*a^2 + 7*a + 1 in [18.242 +/- 1.74e-5])
         throw 42;
     }
 }

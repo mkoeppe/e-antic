@@ -45,8 +45,8 @@ int main(void)
         arb_add_error_2exp_si(emb, -20);
         renf_init(nf, p, emb, 64);
 
-        istringstream is("4*x + 2"); // 4 sqrt(2) + 2
-        is >> set_renf(nf); // >> f;
+        istringstream is("(4*a + 2)"); // 4 sqrt(2) + 2
+        is >> set_renf(nf); // >> f;  /// COMMENTED OUT BECAUSE NOT IMPLEMENTED.
         // FIXME: Check f.
         
         renf_class NF(nf);
@@ -56,13 +56,38 @@ int main(void)
         fmpq_poly_clear(p);
         arb_clear(emb);
     }
-    
-    istringstream is("min_poly 3  -2 0 1 embedding [1 +/- 1]");
+    {
+    istringstream is("min_poly 3  -2 0 1 embedding 1.4+/-0.1");
     renf_class NF;
     is >> NF;
     
+    
     cout << NF;
 
+    fmpq_poly_t p;
+    fmpq_poly_init(p);
+    fmpq_poly_set_str(p, "2  1 7");
+    //renf_elem_class elem(p);   /// FIXME: Not implemented
+    renf_elem_class elem(NF.get_renf());
+    elem = p;
+    cout << "A pretty element: " << elem << endl;
+    }
+    
+    {
+        istringstream is("min_poly 6  -3 0 0 0 0 1 embedding 1+/-1");
+        renf_class NF;
+        is >> NF;
+        
+        
+        cout << NF;
 
+        fmpq_poly_t p;
+        fmpq_poly_init(p);
+        fmpq_poly_set_str(p, "4  1 7 3 2");
+        //renf_elem_class elem(p);   /// FIXME: Not implemented
+        renf_elem_class elem(NF.get_renf());
+        elem = p;
+        cout << "A pretty element: " << elem << endl;
+    }
     return 0;
 }
