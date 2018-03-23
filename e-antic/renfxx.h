@@ -23,10 +23,28 @@
 class renf_class
 {
     renf_srcptr nf;
+    renf_class(const renf_class &);
+    renf_class& operator = (const renf_class&);
+    renf_class& operator = (renf_srcptr a_nf) { 
+        if (nf) {
+            renf_clear(nf); 
+            flint_free(nf);
+        }
+        nf = (renf_srcptr) flint_malloc(sizeof(renf_t));
+        renf_init_set(nf, a_nf); 
+    }
 public:
     renf_class() : nf(0) {}
-    renf_class(renf_t nf) : nf(nf) {} // FIXME: object ownership =?
-    ~renf_class() {}
+    renf_class(renf_srcptr a_nf) { 
+        nf = (renf_srcptr) flint_malloc(sizeof(renf_t));
+        renf_init_set(nf, a_nf); 
+    }
+    ~renf_class() {
+        if (nf) {
+            renf_clear(nf); 
+            flint_free(nf);
+        }
+    }
     renf_srcptr get_renf() { return nf; }
 
     friend std::ostream& operator << (std::ostream &, const renf_class&);
