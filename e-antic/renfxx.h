@@ -384,7 +384,7 @@ inline std::istream& operator>>(std::istream & is, renf_class& a)
 {
     char c;
     std::string s;
-    is >> s;
+    is >> s;   
     if(s!="min_poly")
         throw std::ios_base::failure("Error in reading number field: expected keyword min_poly");
     is >> std::ws;
@@ -448,7 +448,7 @@ inline std::istream& operator>>(std::istream & is, const set_renf &sr)
     return is;
 }
 
-std::vector<mpq_class> terms_to_vector(std::vector<std::string> term_strings){
+inline std::vector<mpq_class> terms_to_vector(std::vector<std::string> term_strings){
     
     std::vector<mpq_class> result;
     
@@ -522,7 +522,7 @@ std::vector<mpq_class> terms_to_vector(std::vector<std::string> term_strings){
     return result;
 }
 
-std::vector<mpq_class> poly_components(std::string poly_string){
+inline std::vector<mpq_class> poly_components(std::string poly_string){
     
     bool start=true;
     std::vector<std::string> term_strings;
