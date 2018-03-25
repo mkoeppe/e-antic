@@ -88,6 +88,76 @@ int main(void)
         renf_elem_class elem(NF.get_renf());
         elem = p;
         cout << "A pretty element: " << elem << endl;
+        fmpq_poly_set_str(p, "1  77");
+        elem = p;
+        cout << "A rational pretty element: " << elem << endl;
+        
+        {
+            istringstream is("( -a^2- 3*a2 + 5a)");
+            renf_elem_class elem(NF.get_renf());
+            is >> set_renf(NF.get_renf());
+            is >> elem;
+            cout << "Wonderful " << elem << endl;
+            
+            stringstream inout;
+            inout >> set_renf(NF.get_renf());
+            inout << "(5/12a^6-1/10+1/10+a3-5*a  + 1/7 a4)";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
+            inout << "(5)";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
+            inout << "(5/ 1 0    )";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
+            inout << "(    a^0-1    )";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
+            inout << "()";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
+            
+            inout << "(-10x/2*a^8)";
+            try{
+                inout >> elem;
+                cout << "Done 1" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 1" << endl;
+            }
+            inout << "(-12*a^-8)";
+            try{
+                inout >> elem;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 2" << endl;
+            }
+            inout << "( 1a a)";
+            try{
+                inout >> elem;
+                cout << "Done 3" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 3" << endl;
+            }
+            inout << "( 1a^1/5 )";
+            try{
+                inout >> elem;
+                cout << "Done 4" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 4" << endl;
+            }
+            inout << "( 1*-a )";
+            try{
+                inout >> elem;
+                cout << "Done 5" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 5" << endl;
+            }
+
+        }
     }
     return 0;
 }

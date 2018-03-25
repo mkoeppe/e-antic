@@ -16,6 +16,9 @@
 #include <iostream>
 #include <string>
 #include <gmpxx.h>
+#include <vector>
+#include <sstream>
+
 
 #include "renf.h"
 #include "renf_elem.h"
@@ -354,11 +357,14 @@ inline renf_elem_class& renf_elem_class::operator=(const renf_elem_class &x)
 inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
 {
     char * res;
-    if (a.nf == NULL)
+    if (a.nf == NULL) {
         res = fmpq_get_str(NULL, 10, a.b);
-    else
+        os << res;
+    }
+    else {
         res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
-    os << res;
+        os << "(" << res << ")";
+    }
     flint_free(res);
     return os;
 }
@@ -442,6 +448,107 @@ inline std::istream& operator>>(std::istream & is, const set_renf &sr)
     return is;
 }
 
+std::vector<mpq_class> terms_to_vector(std::vector<std::string> term_strings){
+    
+    std::vector<mpq_class> result;
+    
+    for(size_t i=0;i<term_strings.size();++i){
+        
+        // std::cout << "Doing " << term_strings[i] << std::endl;
+        
+        mpq_class coeff=1;
+        long sign=1;
+        int expo=0;
+        
+        std::string coeff_string, exp_string;
+        bool a_read=false;
+        if(term_strings[i].size()==1 && (term_strings[i][0]=='+'|| term_strings[i][0]=='-'))
+            throw std::ios_base::failure("Error in reading number field element: double sign");
+        
+        for(size_t j=0;j<term_strings[i].size();++j){
+            if(term_strings[i][j]=='a'){
+                if(a_read){
+                    // std::cout << "Double a" << std::endl;
+                    throw std::ios_base::failure("Error in reading number field element: double a");
+                }
+                a_read=true;
+                expo=1;
+                continue;
+            }
+            if(!a_read){
+                if(term_strings[i][j]=='+') // no leading + allowed for mpq_class
+                    continue;
+                if(term_strings[i][j]=='-'){
+                    sign=-1;
+                    continue;
+                }                    
+                coeff_string+=term_strings[i][j];
+            }
+            else
+                exp_string+=term_strings[i][j];
+        }
+        
+        // std::cout << "Coeff_string " << coeff_string << " Exp_string " << exp_string << std::endl;
+        if(coeff_string.size()>0){
+            try{
+                coeff=mpq_class(coeff_string);
+            }
+            catch(const std::invalid_argument& e) {
+                throw std::ios_base::failure("Error in reading number field element: invalid number coefficient "+coeff_string);                
+            }            
+            coeff=mpq_class(coeff_string);
+        }
+        coeff*=sign;
+        coeff.canonicalize();
+        mpz_class mpz_expo;
+        if(exp_string.size()>0){
+            try{
+            mpz_expo=mpz_class(exp_string);
+            }
+            catch(const std::invalid_argument& e) {
+                throw std::ios_base::failure("Error in reading number field element: invalid exponent  "+exp_string);                
+            }
+            expo=mpz_expo.get_si();
+        }
+        if(expo<0)
+            throw std::ios_base::failure("Error in reading number field element: negative exponent");
+        
+        if(result.size()<=expo)
+            result.resize(expo+1);
+        result[expo]+=coeff;
+        // std::cout << "Coeff " << coeff << " Exp " << expo << std::endl;
+    }
+    
+    return result;
+}
+
+std::vector<mpq_class> poly_components(std::string poly_string){
+    
+    bool start=true;
+    std::vector<std::string> term_strings;
+    std::string current;
+    std::vector<mpq_class> result;
+    
+    // std::cout << "Given syrting " << poly_string << " " << std::endl;
+    
+    for(size_t i=0;i<poly_string.size();++i){
+        if(poly_string[i]=='+'|| poly_string[i]=='-'){
+            if(!start){
+                term_strings.push_back(current);
+                current.clear();
+            }
+        }
+        start=false;
+        current+=poly_string[i];
+    }
+    term_strings.push_back(current);    
+    
+    /* for(size_t i=0; i<term_strings.size();++i)
+        std::cout << "i " << i << " ---- " << term_strings[i] << std::endl; */       
+        
+    return terms_to_vector(term_strings);
+}
+
 inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
 {
     renf *nf = (renf *) is.iword(set_renf::xalloc());
@@ -452,10 +559,82 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
         a = x;
     }
     else {
-        // FIXME: Read element of one of two forms
-        // either a rational number
-        // or "(1 + 5/2*a - 5*a^2)" (matching part of output: 2*a^3 + 3*a^2 + 7*a + 1 in [18.242 +/- 1.74e-5])
-        throw 42;
+        is >> std::ws;
+        char c=is.peek();
+        if(c!='('){
+            mpq_class x;
+            /*std::cout << "Scheiss 2" << std::endl;
+            std::string test;
+            is >> test;
+            std::cout << "Test " << test << std::endl;*/
+            is >> x;
+            a = x;
+        }
+        else{
+            bool error_star=false, error_par=false, error_exp=false;
+            is.get(c);
+            // std::cout << "Drin" << std::endl;
+            std::string poly_string;
+            while(true){
+                is.get(c);
+                if(c==')')
+                    break;
+                if(!is.good())
+                    throw std::ios_base::failure("Error in reading number field element: unexpected end of input");
+                if(c=='(')
+                    error_par=true;
+                if(c=='^' || c=='*'){
+                    is >> std::ws;
+                    char d=is.peek();
+                    if(d=='+' || d=='-')
+                        error_star=true;                  
+                }
+                if(c!=' ' && c!='*' && c!='^')
+                    poly_string+=c;
+            }
+            // std::cout << "poly_string " << poly_string << std::endl;
+            
+            if(error_par)
+                throw std::ios_base::failure("Error in reading number field element: double )");
+            if(error_star)
+                throw std::ios_base::failure("Error in reading number field element: unexpected + or -");  
+                
+                
+            std::vector<mpq_class> poly_vector=poly_components(poly_string);
+            /* std::cout << "vector size " << poly_vector.size() << std::endl;
+            for(size_t i=0;i<poly_vector.size();++i)
+                std::cout << poly_vector[i] << " ";
+            std::cout << std::endl;*/
+            
+            std::string result_string;
+            
+            std::string poly_size;
+            std::stringstream strstream;
+            strstream << poly_vector.size();
+            strstream >> result_string;
+            result_string+="  ";
+            
+            for(size_t i=0;i<poly_vector.size();++i){
+                result_string+=poly_vector[i].get_str();
+                result_string+=' ';                
+            }
+            
+            // std::cout << "result_string " << result_string << std::endl;
+            
+            fmpq_poly_t final_poly;            
+            fmpq_poly_init(final_poly);
+            int error = fmpq_poly_set_str(final_poly,result_string.c_str());
+            
+            a=final_poly;
+            
+
+            /*fmpq_poly_t flp;
+            slong n= (slong) poly_vector.size();
+            fmpq_poly_fit_length(flp,n);
+            for(size_t i=0;i<poly_vector.size();++i){
+                fmpq_poly_set_coeff_mpq(flp,(slong) i, poly_vector[i].get_mpq_t());
+            }*/
+        }
     }
 }
 
