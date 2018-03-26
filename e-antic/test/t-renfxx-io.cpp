@@ -93,27 +93,38 @@ int main(void)
         cout << "A rational pretty element: " << elem << endl;
         
         {
-            istringstream is("( -a^2- 3*a2 + 5a)");
+            /*istringstream is("( -a^2- 3*a2 + 5a)");
             renf_elem_class elem(NF.get_renf());
             is >> set_renf(NF.get_renf());
             is >> elem;
-            cout << "Wonderful " << elem << endl;
+            cout << "Wonderful " << elem << endl;*/
             
-            stringstream inout;
+            renf_elem_class elem(NF.get_renf());            
+            stringstream inout;   
             inout >> set_renf(NF.get_renf());
+
+            inout << "( -a^2- 3*a2 + 5a)";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
             inout << "(5/12a^6-1/10+1/10+a3-5*a  + 1/7 a4)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
             inout << "(5)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
-            inout << "(5/ 1 0    )";
+            inout << "(5/ 10    )";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
             inout << "(    a^0-1    )";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
-            inout << "()";
+            inout << "(a)";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
+            inout << "(-3  - 7 +1000)";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
+            inout << "(       -3-7 +1000)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
             
@@ -155,6 +166,78 @@ int main(void)
             }
             catch(const std::ios_base::failure& e){
                 cout << "Caught 5" << endl;
+            }
+            inout << "()";
+            try{
+                inout >> elem;
+                cout << "Done 6" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 6a" << endl;
+            }
+            inout << "(+)";
+            try{
+                inout >> elem;
+                cout << "Done 6a" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 6" << endl;
+            }
+            inout << "(3 3)";
+            try{
+                inout >> elem;
+                cout << "Done 7" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 7" << endl;
+            }
+            inout << "(3* 3)";
+            try{
+                inout >> elem;
+                cout << "Done 7a" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 7a" << endl;
+            }
+            inout << "(3*3)";
+            try{
+                inout >> elem;
+                cout << "Done 7b" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 7b" << endl;
+            }
+            inout << "(3^ 5)";
+            try{
+                inout >> elem;
+                cout << "Done 8" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 8" << endl;
+            }
+            inout << "(3^5)";
+            try{
+                inout >> elem;
+                cout << "Done 8a" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 8a" << endl;
+            }
+            inout << "(a^*)";
+            try{
+                inout >> elem;
+                cout << "Done 9" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 9" << endl;
+            }
+            inout << "(a^a)";
+            try{
+                inout >> elem;
+                cout << "Done 9a" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 9a" << endl;
             }
 
         }
