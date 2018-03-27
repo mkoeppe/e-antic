@@ -34,7 +34,8 @@ class renf_class
             flint_free(nf);
         }
         nf = (renf_srcptr) flint_malloc(sizeof(renf_t));
-        renf_init_set(nf, a_nf); 
+        renf_init_set(nf, a_nf);
+        return *this;
     }
 public:
     renf_class() : nf(0) {}
@@ -690,6 +691,7 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
             }*/
         }
     }
+    return is;
 }
 
 
@@ -698,6 +700,7 @@ inline renf_elem_class renf_elem_class::operator-() const
     renf_elem_class ans(*this);
     if (nf == NULL) fmpq_neg(ans.b, ans.b);
     else renf_elem_neg(ans.a, ans.a, ans.nf);
+    return ans;
 }
 inline renf_elem_class renf_elem_class::operator+() const
 {
