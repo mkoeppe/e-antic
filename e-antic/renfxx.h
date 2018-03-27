@@ -670,10 +670,16 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
             fmpq_poly_t final_poly;            
             fmpq_poly_init(final_poly);
             int error = fmpq_poly_set_str(final_poly,result_string.c_str());
+            if(error)
+                std::cout << "polynomial corrupt" << std::endl;
             
-            renf_elem_class a1(nf);           
+            std::istringstream is("min_poly 6  -3 0 0 0 0 1 embedding 1+/-1");
+            renf_class NF;
+            is >> NF;
+            
+            renf_elem_class a1(NF.get_renf());           
             a1=final_poly;
-            a=a1;
+            a=final_poly;
             
 
             /*fmpq_poly_t flp;
