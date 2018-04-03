@@ -375,80 +375,12 @@ inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
 inline std::ostream& operator<<(std::ostream & os, const renf_class& nf)
 {
     char *res, *res1;
-    res=fmpq_poly_get_str(nf.nf->nf->pol);
+    res=fmpq_poly_get_str_pretty(nf.nf->nf->pol,"a");
     res1=arb_get_str(nf.nf->emb,64,0);
-    os << "min_poly "<< res << " embedding " << res1 << std::endl;
+    os << "min_poly "<< "(" << res << ")" << " embedding " << res1 << std::endl;
     flint_free(res);
     flint_free(res1);
     return os;
-}
-
-inline std::istream& operator>>(std::istream & is, renf_class& a)
-{
-    char c;
-    std::string s;
-    is >> s;   
-    if(s!="min_poly")
-        throw std::ios_base::failure("Error in reading number field: expected keyword min_poly");
-    is >> std::ws;
-    std::string t;
-    while(true){
-        c=is.peek();
-        if(c=='e')
-            break;
-        is.get(c);
-        t+=c;               
-    }
-    fmpq_poly_t inpoly;
-    fmpq_poly_init(inpoly);
-    int error = fmpq_poly_set_str(inpoly,t.c_str());
-    if (error)
-         throw std::ios_base::failure("Error in reading number field: invalid polynomial " + t);
-    is >> s;
-    if(s!="embedding")
-        throw std::ios_base::failure("Error in reading number field: expected keyword embedding");
-    is >> std::ws;
-    std::string u;
-    c=is.peek();
-    if(c=='['){
-        while(true){
-            is.get(c);
-            u+=c;
-            if(c==']')
-                break;
-        }
-    }
-    else{
-        is >> u;
-    }
-    arb_t emb;
-    arb_init(emb);
-    error=arb_set_str(emb,u.c_str(),10);
-    if(error)
-        throw std::ios_base::failure("Error in reading number field: bad formatting of embedding " + u );
-    renf_t nf;
-    renf_init(nf,inpoly,emb,64);
-    a=nf; 
-    return is;
-}
-
-struct set_renf {
-    renf_srcptr _nf;  // Does not belong to us.
-    set_renf(renf_srcptr nf) { _nf = nf; }
-    set_renf(const renf_class &NF) { _nf = NF.get_renf(); }
-    static int xalloc();
-};
-
-inline int set_renf::xalloc()
-{
-    static int xa = std::ios_base::xalloc();
-    return xa;
-}
-
-inline std::istream& operator>>(std::istream & is, const set_renf &sr)
-{
-    is.iword(set_renf::xalloc()) = (long) sr._nf;
-    return is;
 }
 
 inline std::vector<mpq_class> terms_to_vector(std::vector<std::string> term_strings){
@@ -608,9 +540,103 @@ inline std::vector<mpq_class> poly_components(std::string poly_string){
     return terms_to_vector(term_strings);
 }
 
+inline void vector2fmpq_poly(fmpq_poly_t flp, const std::vector<mpq_class>& poly_vector){
+    
+    slong n= (slong) poly_vector.size();
+
+    fmpq_poly_fit_length(flp,n);
+    for(size_t i=0;i<poly_vector.size();++i){
+        fmpq_poly_set_coeff_mpq(flp,(slong) i, poly_vector[i].get_mpq_t());
+    }
+
+}
+
+inline std::istream& operator>>(std::istream & is, renf_class& a)
+{
+    char c;
+    std::string s;
+    is >> s;   
+    if(s!="min_poly")
+        throw std::ios_base::failure("Error in reading number field: expected keyword min_poly");
+    is >> std::ws;
+    c=is.peek();
+    if(c!='(')
+        throw std::ios_base::failure("Error in reading number field: min_poly does not start with (");
+    is >> c;
+    
+    std::string mp_string;
+    while(true){
+        c=is.peek();
+        if(c==')'){
+            is.get(c);
+            break;
+        }
+        is.get(c);
+        if(is.fail())
+            throw std::ios_base::failure("Error in reading number field: min_poly not terminated by )");
+        mp_string+=c;               
+    }
+    std::vector<mpq_class> mp_vector=poly_components(mp_string);
+    fmpq_poly_t inpoly;
+    fmpq_poly_init(inpoly);
+    vector2fmpq_poly(inpoly,mp_vector);
+    /* int error = fmpq_poly_set_str(inpoly,t.c_str());
+    if (error)
+         throw std::ios_base::failure("Error in reading number field: invalid polynomial " + t);*/
+    
+    is >> s;
+    if(s!="embedding")
+        throw std::ios_base::failure("Error in reading number field: expected keyword embedding");
+    is >> std::ws;
+    std::string u;
+    c=is.peek();
+    if(c=='['){
+        while(true){
+            is.get(c);
+            u+=c;
+            if(c==']')
+                break;
+        }
+    }
+    else{
+        is >> u;
+    }
+    arb_t emb;
+    arb_init(emb);
+    int error=arb_set_str(emb,u.c_str(),10);
+    if(error)
+        throw std::ios_base::failure("Error in reading number field: bad formatting of embedding " + u );
+    renf_t nf;
+    renf_init(nf,inpoly,emb,64);
+    a=nf; 
+    return is;
+}
+
+struct set_renf {
+    renf_srcptr _nf;  // Does not belong to us.
+    set_renf(renf_srcptr nf) { _nf = nf; }
+    set_renf(const renf_class &NF) { _nf = NF.get_renf(); }
+    static int xalloc();
+};
+
+inline int set_renf::xalloc()
+{
+    static int xa = std::ios_base::xalloc();
+    return xa;
+}
+
+inline std::istream& operator>>(std::istream & is, const set_renf &sr)
+{
+    is.iword(set_renf::xalloc()) = (long) sr._nf;
+    return is;
+}
+
+
+
 inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
 {
     renf *nf = (renf *) is.iword(set_renf::xalloc());
+    
     if (!nf) {
         // If no number field has been set, use rational input.
         mpq_class x;
@@ -618,6 +644,8 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
         a = x;
     }
     else {
+        long degree=fmpq_poly_degree(nf->nf->pol);
+        
         is >> std::ws;
         char c=is.peek();
         if(c!='('){
@@ -644,15 +672,12 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
                 throw std::ios_base::failure("Error in reading number field element: double )");              
                 
             std::vector<mpq_class> poly_vector=poly_components(poly_string);
+            if(poly_vector.size()>= degree+1)
+                throw std::ios_base::failure("Error in reading number field element: nonreduced element read");  
             
             fmpq_poly_t flp;
-            
-            slong n= (slong) poly_vector.size();
             fmpq_poly_init(flp);
-            fmpq_poly_fit_length(flp,n);
-            for(size_t i=0;i<poly_vector.size();++i){
-                fmpq_poly_set_coeff_mpq(flp,(slong) i, poly_vector[i].get_mpq_t());
-            }
+            vector2fmpq_poly(flp,poly_vector);
             
             // Set up element in correct number field
             renf_elem_class a1(nf);           

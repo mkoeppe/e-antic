@@ -57,12 +57,14 @@ int main(void)
         arb_clear(emb);
     }
     {
-    istringstream is("min_poly 3  -2 0 1 embedding 1.4+/-0.1");
+    istringstream is("min_poly (a2-2) embedding 1.4+/-0.1");
     renf_class NF;
     is >> NF;
     
     
     cout << NF;
+    
+    cout << "-----------" << endl;
 
     fmpq_poly_t p;
     fmpq_poly_init(p);
@@ -74,7 +76,7 @@ int main(void)
     }
     
     {
-        istringstream is("min_poly 6  -3 0 0 0 0 1 embedding 1+/-1");
+        istringstream is("min_poly (a^5-3) embedding 1+/-1");
         renf_class NF;
         is >> NF;
         
@@ -93,25 +95,18 @@ int main(void)
         cout << "A rational pretty element: " << elem << endl;
         
         {
-            /*istringstream is("( -a^2- 3*a2 + 5a)");
-            renf_elem_class elem(NF.get_renf());
-            is >> set_renf(NF.get_renf());
-            is >> elem;
-            cout << "Wonderful " << elem << endl;*/
+ 
             
             renf_elem_class elem(NF.get_renf());            
             stringstream inout;   
             inout >> set_renf(NF.get_renf());
-            std::cout << "*****" << NF.get_renf() << std::endl;
 
             inout << "( -a^2- 3*a2 + 5a)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
-            inout << "(5/12a^6-1/10+1/10+a3-5*a  + 1/7 a4)";
+            inout << "(-1/10+1/10+a3-5*a  + 1/7 a4)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
-            nf_elem_reduce(elem.get_renf_elem()->elem, NF.get_renf()->nf);
-            cout << "Reduced " << elem << endl;
             inout << "(5)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
@@ -243,6 +238,31 @@ int main(void)
                 cout << "Caught 9a" << endl;
             }
 
+        }
+        
+        {
+            istringstream is("min_poly (a^2-2) embedding 1+/-1");
+            renf_class NF;
+            is >> NF;
+            
+            renf_elem_class elem(NF.get_renf()); 
+            
+            stringstream inout;   
+            inout >> set_renf(NF);
+            
+            inout << "(a+1)";
+            inout >> elem;
+            cout << "Wonderful " << elem << endl;
+            
+            try{
+                inout << "(a^3)";
+                cout << "Done 10" << endl;
+            }
+            catch(const std::ios_base::failure& e){
+                cout << "Caught 10" << endl;
+            }
+            
+            
         }
     }
     return 0;
