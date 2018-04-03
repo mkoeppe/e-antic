@@ -66,7 +66,7 @@ public:
     renf_elem_class(renf_t nf);
 
     // construction as integers or rationals
-    renf_elem_class(const int=0);
+    renf_elem_class(const int=0);            // also default constructor
     renf_elem_class(const unsigned int);
     renf_elem_class(const long);
     renf_elem_class(const unsigned long);
@@ -74,6 +74,8 @@ public:
     renf_elem_class(const mpq_class&);
     renf_elem_class(const fmpz_t&);
     renf_elem_class(const fmpq_t&);
+
+    // copy constructor
     renf_elem_class(const renf_elem_class&);
 
     ~renf_elem_class();
