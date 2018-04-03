@@ -49,7 +49,7 @@ public:
             flint_free(nf);
         }
     }
-    renf_srcptr get_renf() { return nf; }
+    renf_srcptr get_renf() const { return nf; }
 
     friend std::ostream& operator << (std::ostream &, const renf_class&);
     friend std::istream& operator >> (std::istream &, renf_class&);
@@ -434,7 +434,8 @@ inline std::istream& operator>>(std::istream & is, renf_class& a)
 
 struct set_renf {
     renf_srcptr _nf;  // Does not belong to us.
-    set_renf(renf_t nf) { _nf = nf; }
+    set_renf(renf_srcptr nf) { _nf = nf; }
+    set_renf(const renf_class &NF) { _nf = NF.get_renf(); }
     static int xalloc();
 };
 
