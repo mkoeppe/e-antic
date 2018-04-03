@@ -34,7 +34,8 @@ class renf_class
             flint_free(nf);
         }
         nf = (renf_srcptr) flint_malloc(sizeof(renf_t));
-        renf_init_set(nf, a_nf); 
+        renf_init_set(nf, a_nf);
+        return *this;
     }
 public:
     renf_class() : nf(0) {}
@@ -65,7 +66,7 @@ public:
     renf_elem_class(renf_t nf);
 
     // construction as integers or rationals
-    renf_elem_class(const int=0);
+    renf_elem_class(const int=0);            // also default constructor
     renf_elem_class(const unsigned int);
     renf_elem_class(const long);
     renf_elem_class(const unsigned long);
@@ -73,6 +74,8 @@ public:
     renf_elem_class(const mpq_class&);
     renf_elem_class(const fmpz_t&);
     renf_elem_class(const fmpq_t&);
+
+    // copy constructor
     renf_elem_class(const renf_elem_class&);
 
     ~renf_elem_class();
@@ -430,9 +433,8 @@ inline std::istream& operator>>(std::istream & is, renf_class& a)
 }
 
 struct set_renf {
-    renf_class *_nf;
-    set_renf(renf_t nf) { _nf = new renf_class(nf); }
-    set_renf(renf_class &nf) { _nf = &nf; } // FIXME: Object ownership =?
+    renf_srcptr _nf;  // Does not belong to us.
+    set_renf(renf_t nf) { _nf = nf; }
     static int xalloc();
 };
 
@@ -643,6 +645,7 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
             std::vector<mpq_class> poly_vector=poly_components(poly_string);
             
             fmpq_poly_t flp;
+            
             slong n= (slong) poly_vector.size();
             fmpq_poly_init(flp);
             fmpq_poly_fit_length(flp,n);
@@ -650,11 +653,15 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
                 fmpq_poly_set_coeff_mpq(flp,(slong) i, poly_vector[i].get_mpq_t());
             }
             
+            // Set up element in correct number field
             renf_elem_class a1(nf);           
             a1=flp;
+
+            // Fill result
             a=a1;
         }
     }
+    return is;
 }
 
 
@@ -663,6 +670,7 @@ inline renf_elem_class renf_elem_class::operator-() const
     renf_elem_class ans(*this);
     if (nf == NULL) fmpq_neg(ans.b, ans.b);
     else renf_elem_neg(ans.a, ans.a, ans.nf);
+    return ans;
 }
 inline renf_elem_class renf_elem_class::operator+() const
 {
