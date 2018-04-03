@@ -102,6 +102,7 @@ int main(void)
             renf_elem_class elem(NF.get_renf());            
             stringstream inout;   
             inout >> set_renf(NF.get_renf());
+            std::cout << "*****" << NF.get_renf() << std::endl;
 
             inout << "( -a^2- 3*a2 + 5a)";
             inout >> elem;

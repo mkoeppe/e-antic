@@ -619,17 +619,12 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
         char c=is.peek();
         if(c!='('){
             mpq_class x;
-            /*std::cout << "Scheiss 2" << std::endl;
-            std::string test;
-            is >> test;
-            std::cout << "Test " << test << std::endl;*/
             is >> x;
             a = x;
         }
         else{
             bool error_par=false;
             is.get(c);
-            // std::cout << "Drin" << std::endl;
             std::string poly_string;
             while(true){
                 is.get(c);
@@ -641,53 +636,23 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
                     error_par=true;
                 poly_string+=c;
             }
-            // std::cout << "poly_string " << poly_string << std::endl;
             
             if(error_par)
                 throw std::ios_base::failure("Error in reading number field element: double )");              
                 
             std::vector<mpq_class> poly_vector=poly_components(poly_string);
-            /* std::cout << "vector size " << poly_vector.size() << std::endl;
-            for(size_t i=0;i<poly_vector.size();++i)
-                std::cout << poly_vector[i] << " ";
-            std::cout << std::endl;*/
             
-            std::string result_string;
-            
-            std::string poly_size;
-            std::stringstream strstream;
-            strstream << poly_vector.size();
-            strstream >> result_string;
-            result_string+="  ";
-            
-            for(size_t i=0;i<poly_vector.size();++i){
-                result_string+=poly_vector[i].get_str();
-                result_string+=' ';                
-            }
-            
-            // std::cout << "result_string " << result_string << std::endl;
-            
-            fmpq_poly_t final_poly;            
-            fmpq_poly_init(final_poly);
-            int error = fmpq_poly_set_str(final_poly,result_string.c_str());
-            if(error)
-                std::cout << "polynomial corrupt" << std::endl;
-            
-            std::istringstream is("min_poly 6  -3 0 0 0 0 1 embedding 1+/-1");
-            renf_class NF;
-            is >> NF;
-            
-            renf_elem_class a1(NF.get_renf());           
-            a1=final_poly;
-            a=final_poly;
-            
-
-            /*fmpq_poly_t flp;
+            fmpq_poly_t flp;
             slong n= (slong) poly_vector.size();
+            fmpq_poly_init(flp);
             fmpq_poly_fit_length(flp,n);
             for(size_t i=0;i<poly_vector.size();++i){
                 fmpq_poly_set_coeff_mpq(flp,(slong) i, poly_vector[i].get_mpq_t());
-            }*/
+            }
+            
+            renf_elem_class a1(nf);           
+            a1=flp;
+            a=a1;
         }
     }
 }
