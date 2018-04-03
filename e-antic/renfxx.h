@@ -433,9 +433,8 @@ inline std::istream& operator>>(std::istream & is, renf_class& a)
 }
 
 struct set_renf {
-    renf_class *_nf;
-    set_renf(renf_t nf) { _nf = new renf_class(nf); }
-    set_renf(renf_class &nf) { _nf = &nf; } // FIXME: Object ownership =?
+    renf_srcptr _nf;  // Does not belong to us.
+    set_renf(renf_t nf) { _nf = nf; }
     static int xalloc();
 };
 
@@ -676,13 +675,16 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
             if(error)
                 std::cout << "polynomial corrupt" << std::endl;
             
-            std::istringstream is("min_poly 6  -3 0 0 0 0 1 embedding 1+/-1");
-            renf_class NF;
-            is >> NF;
+            /// std::istringstream is("min_poly 6  -3 0 0 0 0 1 embedding 1+/-1");
+            /// renf_class NF;
+            /// is >> NF;
             
-            renf_elem_class a1(NF.get_renf());           
+            // Set up element in correct number field
+            renf_elem_class a1(nf);           
             a1=final_poly;
-            a=final_poly;
+
+            // Fill result
+            a=a1;
             
 
             /*fmpq_poly_t flp;

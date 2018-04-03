@@ -109,6 +109,8 @@ int main(void)
             inout << "(5/12a^6-1/10+1/10+a3-5*a  + 1/7 a4)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
+            nf_elem_reduce(elem.get_renf_elem()->elem, NF.get_renf()->nf);
+            cout << "Reduced " << elem << endl;
             inout << "(5)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
