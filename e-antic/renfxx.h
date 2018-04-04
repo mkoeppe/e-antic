@@ -675,6 +675,7 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
         }
         else{
             bool error_par=false;
+            bool skip=false;
             is.get(c);
             std::string poly_string;
             while(true){
@@ -685,7 +686,10 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
                     throw std::ios_base::failure("Error in reading number field element: unexpected end of input");
                 if(c=='(')
                     error_par=true;
-                poly_string+=c;
+                if(c=='i')
+                    skip=true;
+                if(!skip)
+                    poly_string+=c;
             }
             
             if(error_par)
