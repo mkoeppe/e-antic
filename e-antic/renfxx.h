@@ -361,12 +361,24 @@ inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
 {
     char * res;
     if (a.nf == NULL) {
-        res = fmpq_get_str(NULL, 10, a.b);
-        os << res;
+        if(fmpz_is_one(fmpq_denref(a.b))){
+            res = fmpq_get_str(NULL, 10, a.b);
+            os << res;
+        }
+        else{
+            arb_t emb;
+            char * res1;
+            arb_init(emb);
+            arb_set_fmpq(emb,a.b,23);
+            res1=arb_get_str(emb,5,0);
+            res = fmpq_get_str(NULL, 10, a.b);
+            os << "(" << res << " in " << res1 << ")";
+            flint_free(res1);
+        }
     }
     else {
         
-        if(nf_elem_is_integer(a.a->elem,a.nf->nf)){
+        if(renf_elem_is_integer(a.a,a.nf)){
             res = nf_elem_get_str_pretty(a.a->elem, "a", a.nf->nf);
             os  << res;
         }
