@@ -96,6 +96,12 @@ int renf_elem_is_rational(const renf_elem_t a, const renf_t nf)
 }
 
 static __inline__
+int renf_elem_is_integer(const renf_elem_t a, const renf_t nf)
+{
+    return _nf_elem_is_integer(a->elem, nf->nf);
+}
+
+static __inline__
 void renf_elem_zero(renf_elem_t a, const renf_t nf)
 {
     nf_elem_zero(a->elem, nf->nf);
