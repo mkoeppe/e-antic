@@ -365,8 +365,16 @@ inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
         os << res;
     }
     else {
-        res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
-        os << "(" << res << ")";
+        
+        if(nf_elem_is_integer(a.a->elem,a.nf->nf)){
+            res = nf_elem_get_str_pretty(a.a->elem, "a", a.nf->nf);
+            os  << res;
+        }
+        else{            
+            renf_elem_set_evaluation(a.a,a.nf,23);
+            res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
+            os << "(" << res << ")";
+        }
     }
     flint_free(res);
     return os;
