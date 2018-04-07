@@ -374,12 +374,12 @@ inline std::string shorten_exact_renf_string(const std::string& long_form){
     for(size_t i=0;i<long_form.size()-1;++i){
         if(long_form[i]=='i'){
             i+=2;
-            short_form+="[";
+            short_form+="= ";
             continue;
         }
         short_form+=long_form[i];
     }
-    short_form+="]";
+    // short_form+="]";
     return short_form;    
 }
 
@@ -393,7 +393,9 @@ inline std::string shorten_renf_string(const std::string& long_form){
             skip=true;
         if(long_form[i]=='['){
             bracket_read=true;
+            short_form+="~ ";
             skip=false;
+            continue;
         }
         if(bracket_read && long_form[i]==' '){
             skip=true;            
@@ -403,7 +405,7 @@ inline std::string shorten_renf_string(const std::string& long_form){
     }
     if(!bracket_read)
         return shorten_exact_renf_string(long_form);
-    short_form+="?]";
+    // short_form+="?]";
     return short_form;    
 }
 
@@ -765,7 +767,7 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
                     throw std::ios_base::failure("Error in reading number field element: unexpected end of input");
                 if(c=='(')
                     error_par=true;
-                if(c=='i' || c=='[')
+                if(c=='i' || c=='[' || c=='~' || c=='=')
                     skip=true;
                 if(!skip)
                     poly_string+=c;
