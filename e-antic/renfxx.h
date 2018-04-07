@@ -357,6 +357,46 @@ inline renf_elem_class& renf_elem_class::operator=(const renf_elem_class &x)
 
 // I/O
 
+
+inline std::string shorten_exact_renf_string(const std::string& long_form){
+
+    std::string short_form;
+    for(size_t i=0;i<long_form.size()-1;++i){
+        if(long_form[i]=='i'){
+            i+=2;
+            short_form+="[";
+            continue;
+        }
+        short_form+=long_form[i];
+    }
+    short_form+="]";
+    return short_form;    
+}
+
+inline std::string shorten_renf_string(const std::string& long_form){
+
+    std::string short_form;
+    bool skip=false;
+    bool bracket_read=false;
+    for(size_t i=0;i<long_form.size();++i){
+        if(long_form[i]=='i')
+            skip=true;
+        if(long_form[i]=='['){
+            bracket_read=true;
+            skip=false;
+        }
+        if(bracket_read && long_form[i]==' '){
+            skip=true;            
+        }
+        if(!skip)
+            short_form+=long_form[i];        
+    }
+    if(!bracket_read)
+        return shorten_exact_renf_string(long_form);
+    short_form+="?]";
+    return short_form;    
+}
+
 inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
 {
     char * res;
@@ -372,7 +412,12 @@ inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
             arb_set_fmpq(emb,a.b,23);
             res1=arb_get_str(emb,5,0);
             res = fmpq_get_str(NULL, 10, a.b);
-            os << "(" << res << " in " << res1 << ")";
+            std::string total=res;
+            total+=" in ";
+            total+=+res1;
+            std::string short_output=shorten_renf_string(total);
+            // os << "(" << res << " in " << res1 << ")";
+            os << "(" << short_output << ")";
             flint_free(res1);
         }
     }
@@ -382,10 +427,18 @@ inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
             res = nf_elem_get_str_pretty(a.a->elem, "a", a.nf->nf);
             os  << res;
         }
-        else{            
-            renf_elem_set_evaluation(a.a,a.nf,23);
-            res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
-            os << "(" << res << ")";
+        else{
+            if(true){ // renf_elem_output_short
+                renf_elem_set_evaluation(a.a,a.nf,23);
+                res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
+                std::string short_output=shorten_renf_string(res);
+                os << "(" << short_output << ")";
+            }
+            else{
+                renf_elem_set_evaluation(a.a,a.nf,23);
+                res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
+                os << "(" << res << ")";
+                }
         }
     }
     flint_free(res);
@@ -686,7 +739,7 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
                     throw std::ios_base::failure("Error in reading number field element: unexpected end of input");
                 if(c=='(')
                     error_par=true;
-                if(c=='i')
+                if(c=='i' || c=='[')
                     skip=true;
                 if(!skip)
                     poly_string+=c;

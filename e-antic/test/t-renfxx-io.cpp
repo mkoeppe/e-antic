@@ -110,7 +110,7 @@ int main(void)
             inout << "(5)";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
-            inout << "(5/ 10  in blabla  )";
+            inout << "(-5/ 10  in blabla  )";
             inout >> elem;
             cout << "Wonderful " << elem << endl;
             inout << "(    a^0-1  i )";
