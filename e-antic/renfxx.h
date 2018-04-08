@@ -115,6 +115,22 @@ public:
     bool is_zero() { return renf_elem_is_zero(this->a, this->nf); };
     bool is_one() { return renf_elem_is_one(this->a, this->nf); };
 
+    mpz_class get_den() {
+      mpz_t x;
+      mpz_init(x);
+      if (nf == NULL) {
+        fmpz_get_mpz(x, fmpq_denref(b));
+      }
+      else {
+        fmpz_t d;
+        fmpz_init(d);
+        nf_elem_get_den(d, a->elem, nf->nf);
+        fmpz_get_mpz(x, d);
+        fmpz_clear(d);
+      }
+      return mpz_class(x);
+    }
+
     // input, output
     // I/O manipulator that stores a renf in an input stream
     // for use by operator >>.
