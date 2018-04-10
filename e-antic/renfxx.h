@@ -130,6 +130,8 @@ public:
       }
       return mpz_class(x);
     }
+    
+    std::vector<mpz_class> get_num_vector();
 
     // input, output
     // I/O manipulator that stores a renf in an input stream
@@ -666,6 +668,27 @@ inline void fmpq_poly2vector(std::vector<mpq_class>& poly_vector, const fmpq_pol
         fmpq_poly_get_coeff_mpq(current_coeff,flp,(slong)i);
         poly_vector[i] = mpq_class(current_coeff);
     }
+}
+
+std::vector<mpz_class> renf_elem_class::get_num_vector(){
+    mpz_t x;
+    mpz_init(x);
+    std::vector<mpz_class> result;
+    if (nf == NULL) {
+        fmpz_get_mpz(x, fmpq_numref(b));
+        mpz_class(x);
+        result.push_back(mpz_class(x));            
+    }
+    else{
+        std::vector<mpq_class> mpq_result;
+        fmpq_poly_t flp;
+        fmpq_poly_init(flp);
+        get_fmpq_poly(flp);
+        fmpq_poly2vector(mpq_result,flp);
+        for(size_t i=0;i<mpq_result.size();++i)
+            result.push_back(mpq_result[i].get_num());            
+    }
+    return result;
 }
 
 inline std::istream& operator>>(std::istream & is, renf_class& a)
