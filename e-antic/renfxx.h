@@ -85,6 +85,11 @@ public:
     fmpq * get_fmpq(void);
     renf_elem_srcptr get_renf_elem(void);
     void get_fmpq_poly(fmpq_poly_t);
+    
+    // arithmetic
+    mpz_class floor() const;
+    mpz_class ceil() const;
+    mpq_class approx();
 
     // assignment
     renf_elem_class& operator = (const fmpz_t&);
@@ -402,6 +407,8 @@ inline std::string shorten_exact_renf_string(const std::string& long_form){
 }
 
 inline std::string shorten_renf_string(const std::string& long_form){
+    
+    // std::cout << long_form << std::endl << std::endl;
 
     std::string short_form;
     bool skip=false;
@@ -412,6 +419,10 @@ inline std::string shorten_renf_string(const std::string& long_form){
         if(long_form[i]=='['){
             bracket_read=true;
             short_form+="~ ";
+            if(long_form[i+1]=='+'){
+                short_form+="0";
+                return short_form; ;
+            }
             skip=false;
             continue;
         }
@@ -427,7 +438,7 @@ inline std::string shorten_renf_string(const std::string& long_form){
     return short_form;    
 }
 
-inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
+inline std::ostream& operator<<(std::ostream & os,const renf_elem_class& a)
 {
     char * res;
     if (a.nf == NULL) {
@@ -458,10 +469,28 @@ inline std::ostream& operator<<(std::ostream & os, const renf_elem_class& a)
             os  << res;
         }
         else{
+            
+            /* fmpq_poly_t help;
+            fmpq_poly_init(help);
+            a.get_fmpq_poly(help);
+            fmpq_poly_evaluate_arb(a.a->emb, help, a.nf->emb, a.nf->prec); */
+            
             if(true){ // renf_elem_output_short
-                renf_elem_set_evaluation(a.a,a.nf,23);
-                res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
-                std::string short_output=shorten_renf_string(res);
+                int prec=23;               
+                renf_elem_set_evaluation(a.a,a.nf,prec);
+                res= renf_elem_get_str_pretty(a.a, "a", a.nf,5);
+                std::string short_output_short=shorten_renf_string(res);
+                std::string short_output; 
+                while(prec<=92){
+                    prec*=2,
+                    renf_elem_set_evaluation(a.a,a.nf,prec);
+                    res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
+                    short_output=shorten_renf_string(res);
+                    if(short_output==short_output_short)
+                        break;
+                    short_output_short=short_output;
+                    
+                }
                 os << "(" << short_output << ")";
             }
             else{
@@ -986,6 +1015,70 @@ inline bool renf_elem_class::operator>(const renf_elem_class & other) const
     {
         return renf_elem_cmp_fmpq(other.a, this->b, other.nf) < 0;
     }
+}
+
+mpq_class to_mpq_class(const fmpq_t q){
+    mpq_t qq;
+    mpq_init(qq);
+    fmpq_get_mpq(qq,q);
+    mpq_class qqq(qq);
+    mpq_clear(qq);
+    return qqq;    
+}
+
+mpz_class to_mpz_class(const fmpz_t z){
+    mpz_t zz;
+    mpz_init(zz);
+    fmpz_get_mpz(zz,z);
+    mpz_class zzz(zz);
+    mpz_clear(zz);
+    return zzz;    
+}
+
+mpz_class fmpq_floor(const fmpq_t q){
+    mpq_class qqq=to_mpq_class(q);   
+    mpz_class num=qqq.get_num();
+    mpz_class den=qqq.get_den();
+    mpz_class ent=num/den;
+    if(num<0 && den*ent!=num)
+        ent--;
+    return ent;
+}
+
+mpz_class fmpq_ceil(const fmpq_t q){
+    mpq_class qqq=to_mpq_class(q);
+    mpz_class num=qqq.get_num();
+    mpz_class den=qqq.get_den();
+    mpz_class ent=num/den;
+    if(num>0 && den*ent!=num)
+        ent++;
+    return ent;
+}
+
+inline mpz_class renf_elem_class::floor() const{
+
+    if(nf==NULL)
+        return fmpq_floor(b);
+
+    fmpz_t fm;
+    fmpz_init(fm);
+    renf_elem_floor(fm,a,nf);
+    mpz_class m=to_mpz_class(fm);
+    flint_free(fm);
+    return m;
+}
+
+inline mpz_class renf_elem_class::ceil() const {
+
+    if(nf==NULL)
+        return fmpq_ceil(b);
+
+    fmpz_t fm;
+    fmpz_init(fm);
+    renf_elem_ceil(fm,a,nf);
+    mpz_class m=to_mpz_class(fm);
+    flint_free(fm);
+    return m;
 }
 
 #define __other_ops(TYP) \
