@@ -441,7 +441,6 @@ inline std::vector<mpz_class> renf_elem_class::get_num_vector(){
 }
 
 inline mpz_class renf_elem_class::get_num(){
-    assert(is_integer());
     mpz_t x;
     mpz_init(x);
     mpz_class result;
