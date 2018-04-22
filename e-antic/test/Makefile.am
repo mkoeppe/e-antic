@@ -2,16 +2,19 @@
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 
-AM_CPPFLAGS = -I../..
+AM_CPPFLAGS = -I$(top_srcdir)
 
 check_PROGRAMS =				\
 	t-renfxx				\
 	t-renfxx_constructor                    \
 	t-renfxx_assignment                     \
 	t-renfxx_binop                          \
-	t-renfxx-io
+	t-renfxx-io                             \
+	t-renfxx_floor                          \
+	t-renfxx_ceil
 
-LDADD = ../../libnfemb.la
-LIBS = -lantic -larb -lflint -lgmpxx -lgmp
+LDADD = $(top_builddir)/libeantic.la
+LIBS = -lgmpxx -lgmp
+#LIBS = -lantic -larb -lflint -lgmpxx -lgmp
 
 TESTS = $(check_PROGRAMS)

@@ -1,30 +1,39 @@
 language: c
+cache: ccache
 compiler:
   - gcc
   - clang
-
+env:
+  MAKE="make -j2"
 install:
   - sudo apt-get install libgmp-dev libmpfr-dev
-# build flint
+  # set local directory and check name resolution
+  - mkdir local
+  - export LOCAL="$(readlink -f local)"
+  - echo ${LOCAL}
+  # build flint
   - git clone https://github.com/wbhart/flint2.git
   - cd flint2
-  - ./configure --prefix=/usr && make && sudo make install
+  - ./configure --prefix=${LOCAL} && make install
   - cd ..
-# build arb
+  # build arb
   - git clone https://github.com/fredrik-johansson/arb.git
   - cd arb
-  - ./configure --prefix=/usr && make && sudo make install
+  - ./configure --prefix=${LOCAL} --with-flint=${LOCAL} && make install
   - cd ..
-# build antic
-  - git clone https://github.com/videlec/antic.git
+  # build antic
+  - git clone https://github.com/wbhart/antic.git
   - cd antic
-  - git checkout build_system
-  - ./configure --prefix=/usr && make && sudo make install
+  - ./configure --prefix=${LOCAL} --with-flint=${LOCAL} && make install
   - cd ..
-# build e-antic
+  # check linking of installation
+  - ldd local/lib/libflint.so
+  - ldd local/lib/libarb.so
+  - ldd local/lib/libantic.so
+  # build e-antic
   - ./bootstrap.sh
-  - ./configure
-  - make V=1
+  - ./configure CFLAGS="-I${LOCAL}/include" CPPFLAGS="-I${LOCAL}/include" LDFLAGS="-L${LOCAL}/lib"
 
 script:
-  make check V=1
+  - export LD_LIBRARY_PATH=${LOCAL}/lib"  # something badly broken!!
+  - V=1 CFLAGS="-I${LOCAL}/include" CPPFLAGS="-I${LOCAL}/include" LDFLAGS="-L${LOCAL}/lib" make distcheck

@@ -86,10 +86,16 @@ public:
     renf_elem_srcptr get_renf_elem(void);
     void get_fmpq_poly(fmpq_poly_t);
     
+    bool is_ratinal();
+    bool is_integer();
+    mpz_class get_den();
+    std::vector<mpz_class> get_num_vector();
+    mpz_class get_num();
+    double get_approx(); // not yet implemented
+    
     // arithmetic
     mpz_class floor() const;
     mpz_class ceil() const;
-    mpq_class approx();
 
     // assignment
     renf_elem_class& operator = (const fmpz_t&);
@@ -119,24 +125,6 @@ public:
 
     bool is_zero() { return renf_elem_is_zero(this->a, this->nf); };
     bool is_one() { return renf_elem_is_one(this->a, this->nf); };
-
-    mpz_class get_den() {
-      mpz_t x;
-      mpz_init(x);
-      if (nf == NULL) {
-        fmpz_get_mpz(x, fmpq_denref(b));
-      }
-      else {
-        fmpz_t d;
-        fmpz_init(d);
-        nf_elem_get_den(d, a->elem, nf->nf);
-        fmpz_get_mpz(x, d);
-        fmpz_clear(d);
-      }
-      return mpz_class(x);
-    }
-    
-    std::vector<mpz_class> get_num_vector();
 
     // input, output
     // I/O manipulator that stores a renf in an input stream
@@ -388,6 +376,104 @@ inline renf_elem_class& renf_elem_class::operator=(const renf_elem_class &x)
     return *this;
 }
 
+inline void vector2fmpq_poly(fmpq_poly_t flp, const std::vector<mpq_class>& poly_vector){
+    
+    slong n= (slong) poly_vector.size();
+
+    fmpq_poly_fit_length(flp,n);
+    for(size_t i=0;i<poly_vector.size();++i){
+        fmpq_poly_set_coeff_mpq(flp,(slong) i, poly_vector[i].get_mpq_t());
+    }
+
+}
+
+inline void fmpq_poly2vector(std::vector<mpq_class>& poly_vector, const fmpq_poly_t flp){
+    
+    slong length = fmpq_poly_length(flp);
+    if(length==0){
+        poly_vector.push_back(mpz_class(0));
+        return;
+    }
+    poly_vector.resize(length);
+    for(slong i=0;i<length;i++){
+        mpq_t current_coeff;
+        mpq_init(current_coeff);
+        fmpq_poly_get_coeff_mpq(current_coeff,flp,(slong)i);
+        poly_vector[i] = mpq_class(current_coeff);
+    }
+}
+
+ inline  mpz_class renf_elem_class::get_den() {
+      mpz_t x;
+      mpz_init(x);
+      if (nf == NULL) {
+        fmpz_get_mpz(x, fmpq_denref(b));
+      }
+      else {
+        fmpz_t d;
+        fmpz_init(d);
+        nf_elem_get_den(d, a->elem, nf->nf);
+        fmpz_get_mpz(x, d);
+        fmpz_clear(d);
+      }
+      return mpz_class(x);
+    }
+    
+inline std::vector<mpz_class> renf_elem_class::get_num_vector(){
+    mpz_t x;
+    mpz_init(x);
+    std::vector<mpz_class> result;
+    if (nf == NULL) {
+        fmpz_get_mpz(x, fmpq_numref(b));
+        mpz_class(x);
+        result.push_back(mpz_class(x));            
+    }
+    else{
+        std::vector<mpq_class> mpq_result;
+        fmpq_poly_t flp;
+        fmpq_poly_init(flp);
+        get_fmpq_poly(flp);
+        fmpq_poly2vector(mpq_result,flp);
+        for(size_t i=0;i<mpq_result.size();++i)
+            result.push_back(mpq_result[i].get_num());            
+    }
+    return result;
+}
+
+inline mpz_class renf_elem_class::get_num(){
+    assert(is_integer());
+    mpz_t x;
+    mpz_init(x);
+    mpz_class result;
+    if (nf == NULL) {
+        fmpz_get_mpz(x, fmpq_numref(b));
+        mpz_class(x);          
+    }
+    else{
+        std::vector<mpq_class> mpq_result;
+        fmpq_poly_t flp;
+        fmpq_poly_init(flp);
+        get_fmpq_poly(flp);
+        fmpq_poly2vector(mpq_result,flp);
+        result=mpq_result[0].get_num();            
+    }
+    return result;
+}
+    
+ inline   bool renf_elem_class::is_ratinal() {
+      if (nf == NULL)
+        return true;
+      else 
+          renf_elem_is_rational(a,nf);
+    }
+    
+inline    bool renf_elem_class::is_integer() {
+      if (nf == NULL)
+        return fmpz_is_one(fmpq_denref(b));
+      else 
+          return renf_elem_is_integer(a,nf);
+    }
+
 // I/O
 
 
@@ -470,34 +556,29 @@ inline std::ostream& operator<<(std::ostream & os,const renf_elem_class& a)
         }
         else{
             
-            /* fmpq_poly_t help;
-            fmpq_poly_init(help);
-            a.get_fmpq_poly(help);
-            fmpq_poly_evaluate_arb(a.a->emb, help, a.nf->emb, a.nf->prec); */
-            
-            if(true){ // renf_elem_output_short
-                int prec=23;               
+            // if(true){ 
+                int prec=23; // renf_elem_output_short with successive refinement of precision            
                 renf_elem_set_evaluation(a.a,a.nf,prec);
                 res= renf_elem_get_str_pretty(a.a, "a", a.nf,5);
-                std::string short_output_short=shorten_renf_string(res);
+                std::string short_output_raw=shorten_renf_string(res);
                 std::string short_output; 
                 while(prec<=92){
                     prec*=2,
                     renf_elem_set_evaluation(a.a,a.nf,prec);
                     res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
                     short_output=shorten_renf_string(res);
-                    if(short_output==short_output_short)
+                    if(short_output==short_output_raw)
                         break;
-                    short_output_short=short_output;
+                    short_output_raw=short_output;
                     
                 }
                 os << "(" << short_output << ")";
-            }
+            /* }
             else{
                 renf_elem_set_evaluation(a.a,a.nf,23);
                 res = renf_elem_get_str_pretty(a.a, "a", a.nf, 5);
                 os << "(" << res << ")";
-                }
+                }*/
         }
     }
     flint_free(res);
@@ -672,54 +753,6 @@ inline std::vector<mpq_class> poly_components(std::string poly_string){
     return terms_to_vector(term_strings);
 }
 
-inline void vector2fmpq_poly(fmpq_poly_t flp, const std::vector<mpq_class>& poly_vector){
-    
-    slong n= (slong) poly_vector.size();
-
-    fmpq_poly_fit_length(flp,n);
-    for(size_t i=0;i<poly_vector.size();++i){
-        fmpq_poly_set_coeff_mpq(flp,(slong) i, poly_vector[i].get_mpq_t());
-    }
-
-}
-
-inline void fmpq_poly2vector(std::vector<mpq_class>& poly_vector, const fmpq_poly_t flp){
-    
-    slong length = fmpq_poly_length(flp);
-    if(length==0){
-        poly_vector.push_back(mpz_class(0));
-        return;
-    }
-    poly_vector.resize(length);
-    for(slong i=0;i<length;i++){
-        mpq_t current_coeff;
-        mpq_init(current_coeff);
-        fmpq_poly_get_coeff_mpq(current_coeff,flp,(slong)i);
-        poly_vector[i] = mpq_class(current_coeff);
-    }
-}
-
-std::vector<mpz_class> renf_elem_class::get_num_vector(){
-    mpz_t x;
-    mpz_init(x);
-    std::vector<mpz_class> result;
-    if (nf == NULL) {
-        fmpz_get_mpz(x, fmpq_numref(b));
-        mpz_class(x);
-        result.push_back(mpz_class(x));            
-    }
-    else{
-        std::vector<mpq_class> mpq_result;
-        fmpq_poly_t flp;
-        fmpq_poly_init(flp);
-        get_fmpq_poly(flp);
-        fmpq_poly2vector(mpq_result,flp);
-        for(size_t i=0;i<mpq_result.size();++i)
-            result.push_back(mpq_result[i].get_num());            
-    }
-    return result;
-}
-
 inline std::istream& operator>>(std::istream & is, renf_class& a)
 {
     char c;
@@ -842,7 +875,7 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
             }
             
             if(error_par)
-                throw std::ios_base::failure("Error in reading number field element: double )");              
+                throw std::ios_base::failure("Error in reading number field element: double )");           
                 
             std::vector<mpq_class> poly_vector=poly_components(poly_string);
             if(poly_vector.size()>= degree+1)
@@ -1017,7 +1050,7 @@ inline bool renf_elem_class::operator>(const renf_elem_class & other) const
     }
 }
 
-mpq_class to_mpq_class(const fmpq_t q){
+/* inline mpq_class to_mpq_class(const fmpq_t q){
     mpq_t qq;
     mpq_init(qq);
     fmpq_get_mpq(qq,q);
@@ -1026,7 +1059,7 @@ mpq_class to_mpq_class(const fmpq_t q){
     return qqq;    
 }
 
-mpz_class to_mpz_class(const fmpz_t z){
+inline mpz_class to_mpz_class(const fmpz_t z){
     mpz_t zz;
     mpz_init(zz);
     fmpz_get_mpz(zz,z);
@@ -1035,7 +1068,7 @@ mpz_class to_mpz_class(const fmpz_t z){
     return zzz;    
 }
 
-mpz_class fmpq_floor(const fmpq_t q){
+inline mpz_class fmpq_floor(const fmpq_t q){
     mpq_class qqq=to_mpq_class(q);   
     mpz_class num=qqq.get_num();
     mpz_class den=qqq.get_den();
@@ -1045,7 +1078,7 @@ mpz_class fmpq_floor(const fmpq_t q){
     return ent;
 }
 
-mpz_class fmpq_ceil(const fmpq_t q){
+inline mpz_class fmpq_ceil(const fmpq_t q){
     mpq_class qqq=to_mpq_class(q);
     mpz_class num=qqq.get_num();
     mpz_class den=qqq.get_den();
@@ -1079,7 +1112,7 @@ inline mpz_class renf_elem_class::ceil() const {
     mpz_class m=to_mpz_class(fm);
     flint_free(fm);
     return m;
-}
+}*/
 
 #define __other_ops(TYP) \
 inline bool renf_elem_class::operator == (const TYP other) const \
@@ -1114,5 +1147,48 @@ __other_ops(renf_elem_class&);
 __other_ops(mpz_class&);
 __other_ops(mpq_class&);
 #undef __other_ops
+
+// floor, ceil, round
+inline mpz_class renf_elem_class::floor() const
+{
+    fmpz_t tmp;
+    fmpz_init(tmp);
+
+    if (nf == NULL) fmpz_fdiv_q(tmp, fmpq_numref(b), fmpq_denref(b));
+    else renf_elem_floor(tmp, a, nf);
+
+    mpz_class z;
+    fmpz_get_mpz(z.get_mpz_t(), tmp);
+    fmpz_clear(tmp);
+    return z;
+}
+
+inline mpz_class renf_elem_class::ceil() const
+{
+    fmpz_t tmp;
+    fmpz_init(tmp);
+
+    if (nf == NULL)
+    {
+        fmpz_add(tmp, fmpq_numref(b), fmpq_denref(b));
+        fmpz_sub_ui(tmp, tmp, 1);
+        fmpz_fdiv_q(tmp, tmp, fmpq_denref(b));
+    }
+    else renf_elem_ceil(tmp, a, nf);
+
+    mpz_class z;
+    fmpz_get_mpz(z.get_mpz_t(), tmp);
+    fmpz_clear(tmp);
+    return z;
+}
+
+inline mpz_class floor(const renf_elem_class& x){
+    return x.floor();    
+}
+
+inline mpz_class ceil(const renf_elem_class& x){
+    return x.ceil();    
+}
+
 
 #endif

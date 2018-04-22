@@ -3,23 +3,22 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
 # Installed library
-lib_LTLIBRARIES = libnfemb.la
+lib_LTLIBRARIES = libeantic.la
 
 # Linked-against libraries
 LIBS += -lantic -larb -lflint -lgmp
 
 # Installed headers
-nobase_include_HEADERS = e-antic/renf.h e-antic/renf_elem.h e-antic/poly_extra.h
-nobase_include_HEADERS += e-antic/renfxx.h
+nobase_include_HEADERS = e-antic/renf.h e-antic/renf_elem.h e-antic/poly_extra.h e-antic/renfxx.h
 
 # Initialize variables, to be filled below
 noinst_HEADERS =
-libnfemb_la_SOURCES =
+libeantic_la_SOURCES =
 check_PROGRAMS =
 dist_doc_DATA =
 
 # poly_extra
-libnfemb_la_SOURCES +=					\
+libeantic_la_SOURCES +=					\
 	poly_extra/arb_add_fmpq.c			\
 	poly_extra/bisection_step_arb.c			\
 	poly_extra/check_unique_real_root.c		\
@@ -53,10 +52,11 @@ check_PROGRAMS += 						\
 	poly_extra/test/t-squarefree_part
 
 dist_doc_DATA +=				\
+	README                                  \
 	poly_extra/doc/poly_extra.txt
 
 # renf
-libnfemb_la_SOURCES +=						\
+libeantic_la_SOURCES +=						\
 	renf/fmpz_poly_real_embeddings.c			\
 	renf/init.c						\
 	renf/init_set.c						\
@@ -72,7 +72,7 @@ check_PROGRAMS +=				\
 	renf/test/t-real_embeddings
 
 # renf_elem
-libnfemb_la_SOURCES +=						\
+libeantic_la_SOURCES +=						\
 	renf_elem/ceil.c					\
 	renf_elem/check_embedding.c				\
 	renf_elem/clear.c					\
@@ -101,4 +101,4 @@ check_PROGRAMS +=				\
 
 # Run test suite
 TESTS = $(check_PROGRAMS)
-LDADD = libnfemb.la
+LDADD = libeantic.la
