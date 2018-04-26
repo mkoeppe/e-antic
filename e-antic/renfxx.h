@@ -446,7 +446,7 @@ inline mpz_class renf_elem_class::get_num(){
     mpz_class result;
     if (nf == NULL) {
         fmpz_get_mpz(x, fmpq_numref(b));
-        mpz_class(x);          
+        result=mpz_class(x);          
     }
     else{
         std::vector<mpq_class> mpq_result;
