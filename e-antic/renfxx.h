@@ -896,6 +896,11 @@ inline std::istream& operator>>(std::istream & is, renf_elem_class& a)
 }
 
 
+inline renf* get_renf(std::istream& is){
+    return (renf *) is.iword(set_renf::xalloc());  // transfer number field
+}
+
+
 inline renf_elem_class renf_elem_class::operator-() const
 {
     renf_elem_class ans(*this);
@@ -1048,70 +1053,6 @@ inline bool renf_elem_class::operator>(const renf_elem_class & other) const
         return renf_elem_cmp_fmpq(other.a, this->b, other.nf) < 0;
     }
 }
-
-/* inline mpq_class to_mpq_class(const fmpq_t q){
-    mpq_t qq;
-    mpq_init(qq);
-    fmpq_get_mpq(qq,q);
-    mpq_class qqq(qq);
-    mpq_clear(qq);
-    return qqq;    
-}
-
-inline mpz_class to_mpz_class(const fmpz_t z){
-    mpz_t zz;
-    mpz_init(zz);
-    fmpz_get_mpz(zz,z);
-    mpz_class zzz(zz);
-    mpz_clear(zz);
-    return zzz;    
-}
-
-inline mpz_class fmpq_floor(const fmpq_t q){
-    mpq_class qqq=to_mpq_class(q);   
-    mpz_class num=qqq.get_num();
-    mpz_class den=qqq.get_den();
-    mpz_class ent=num/den;
-    if(num<0 && den*ent!=num)
-        ent--;
-    return ent;
-}
-
-inline mpz_class fmpq_ceil(const fmpq_t q){
-    mpq_class qqq=to_mpq_class(q);
-    mpz_class num=qqq.get_num();
-    mpz_class den=qqq.get_den();
-    mpz_class ent=num/den;
-    if(num>0 && den*ent!=num)
-        ent++;
-    return ent;
-}
-
-inline mpz_class renf_elem_class::floor() const{
-
-    if(nf==NULL)
-        return fmpq_floor(b);
-
-    fmpz_t fm;
-    fmpz_init(fm);
-    renf_elem_floor(fm,a,nf);
-    mpz_class m=to_mpz_class(fm);
-    flint_free(fm);
-    return m;
-}
-
-inline mpz_class renf_elem_class::ceil() const {
-
-    if(nf==NULL)
-        return fmpq_ceil(b);
-
-    fmpz_t fm;
-    fmpz_init(fm);
-    renf_elem_ceil(fm,a,nf);
-    mpz_class m=to_mpz_class(fm);
-    flint_free(fm);
-    return m;
-}*/
 
 #define __other_ops(TYP) \
 inline bool renf_elem_class::operator == (const TYP other) const \
