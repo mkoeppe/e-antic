@@ -425,7 +425,6 @@ inline std::vector<mpz_class> renf_elem_class::get_num_vector(){
     std::vector<mpz_class> result;
     if (nf == NULL) {
         fmpz_get_mpz(x, fmpq_numref(b));
-        mpz_class(x);
         result.push_back(mpz_class(x));            
     }
     else{
@@ -463,7 +462,7 @@ inline mpz_class renf_elem_class::get_num(){
       if (nf == NULL)
         return true;
       else 
-          renf_elem_is_rational(a,nf);
+        return renf_elem_is_rational(a,nf);
     }
     
 inline    bool renf_elem_class::is_integer() {
