@@ -2,6 +2,8 @@ SUBDIRS = . e-antic/test
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
+AM_CFLAGS = $(OPENMP_CFLAGS)
+
 # Installed library
 lib_LTLIBRARIES = libnfemb.la
 

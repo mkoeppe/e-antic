@@ -27,7 +27,7 @@ AS_IF([test x$have_openmp = xyes],
         [AC_MSG_NOTICE([Parallelization with OpenMP will not be available because no suitable compiler was found])])
      enable_openmp=no])])
 
-AC_SUBST(OPENMP_CXXFLAGS)
+AC_SUBST(OPENMP_CFLAGS)
 AM_CONDITIONAL(ENABLE_OPENMP, [test x$enable_openmp = xyes])
 
 AC_ARG_WITH([flint],
