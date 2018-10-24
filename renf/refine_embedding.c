@@ -16,6 +16,8 @@
 
 void renf_refine_embedding(renf_t nf, slong prec)
 {
+    #pragma omp critical(RENF_REFINE)
+    {
     arb_t tmp;
     arb_init(tmp);
 
@@ -34,4 +36,5 @@ void renf_refine_embedding(renf_t nf, slong prec)
     }
     arb_swap(tmp, nf->emb);
     arb_clear(tmp);
+    } // #pragma 
 }
