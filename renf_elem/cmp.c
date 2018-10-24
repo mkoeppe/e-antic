@@ -50,8 +50,8 @@ int renf_elem_cmp(renf_elem_t a, renf_elem_t b, renf_t nf)
     }
 
     /* augment precision ad libitum */
-#pragma omp critical(RENF_REFINE)
     do{
+        #pragma omp critical(RENF_REFINE)
         renf_refine_embedding(nf, prec);
         renf_elem_set_evaluation(a, nf, prec);
         renf_elem_set_evaluation(b, nf, prec);
